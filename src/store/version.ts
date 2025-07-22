@@ -1,7 +1,18 @@
-import { compress, decompress } from "../utils/compression/compression";
+import { compress } from "../utils/compression/compression";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
+import LZString from "lz-string";
+import { DiffCalculator } from "./diff";
+import { AuthManager } from "./authorManager";
+
+export const decompressVersions = (compressed: string): VersionRecord[] => {
+  const decompressed = LZString.decompressFromEncodedURIComponent(compressed);
+  if (!decompressed) {
+    throw new Error("Failed to decompress data");
+  }
+  return JSON.parse(decompressed) as VersionRecord[];
+};
 
 export interface VersionRecord {
   id: string;
@@ -217,7 +228,7 @@ export class VersionManager {
     try {
       const compressed = localStorage.getItem(STORAGE_KEYS.VERSIONS);
       if (compressed) {
-        const versionsArray: VersionRecord[] = decompress(compressed);
+        const versionsArray: VersionRecord[] = decompressVersions(compressed);
         this.versions.clear();
         versionsArray.forEach(version => {
           this.versions.set(version.id, version);
@@ -248,7 +259,7 @@ export class VersionManager {
   }
   importVersions(compressedData: string, merge: boolean = false): boolean {
     try {
-      const versionsArray: VersionRecord[] = decompress(compressedData);
+      const versionsArray: VersionRecord[] = decompressVersions(compressedData);
       
       if (!merge) {
         this.versions.clear();
