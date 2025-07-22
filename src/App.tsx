@@ -13,6 +13,7 @@ import TemplateMarkdown from "./editors/editorsContainer/TemplateMarkdown";
 import TemplateModel from "./editors/editorsContainer/TemplateModel";
 import useAppStore from "./store/store";
 import SampleDropdown from "./components/SampleDropdown";
+import VersionControlButton from "./components/VersionControlButton";
 import UseShare from "./components/UseShare";
 import LearnContent from "./components/Content";
 import ResizableContainer from "./components/ResizableContainer";
@@ -154,7 +155,7 @@ const App = () => {
                     }}
                   >
                     <Row>
-                      <Col xs={24} sm={8}>
+                      <Col xs={48} sm={16}>
                         <Row
                           style={{
                             marginLeft: "25px",
@@ -165,6 +166,7 @@ const App = () => {
                         >
                           <SampleDropdown setLoading={setLoading} />
                           <UseShare />
+                          <VersionControlButton />
                           <button id="ai-assistant" onClick={() => setAIChatOpen(!isAIChatOpen)} className="flex cursor-pointer items-center justify-center px-4 py-1.5 h-8 text-sm bg-white border border-solid border-gray-300 rounded-md transition-all duration-400 ease-in-out hover:border-[#4096ff] hover:text-[#4096ff]">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
