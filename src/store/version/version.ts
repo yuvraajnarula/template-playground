@@ -1,10 +1,5 @@
-import { compress } from "../utils/compression/compression";
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
-import { immer } from "zustand/middleware/immer";
+import { compress } from "../../utils/compression/compression";
 import LZString from "lz-string";
-import { DiffCalculator } from "./diff";
-import { AuthManager } from "./authorManager";
 
 export const decompressVersions = (compressed: string): VersionRecord[] => {
   const decompressed = LZString.decompressFromEncodedURIComponent(compressed);
