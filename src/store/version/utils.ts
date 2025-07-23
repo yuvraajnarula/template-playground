@@ -8,25 +8,34 @@ import { VersionManager, VersionRecord, VersionState } from "./version";
 export const VersionUtils = {
   hasMeaningfulChanges(oldContent: string, newContent: string): boolean {
     const normalize = (str: string) => str.trim().replace(/\s+/g, ' ');
-    return normalize(oldContent) !== normalize(newContent);
+    const oldNormalized =normalize(oldContent);
+    const newNormalized = normalize(newContent);const lengthDiff = Math.abs(newContent.length - oldContent.length);
+    return lengthDiff > 5 || oldNormalized !== newNormalized;
   },
   generateChangeDescription(
-    componentType: string,
+    componentType: 'templateMarkdown' | 'modelCto' | 'data',
     oldContent: string,
     newContent: string
   ): string {
-    const stats = DiffCalculator.getChangeStats(oldContent, newContent);
+    const oldLines = oldContent.split('\n').length;
+    const newLines = newContent.split('\n').length;
+    const lineDiff = newLines - oldLines;
     
-    if (oldContent === '') return `Added ${componentType}`;
-    if (newContent === '') return `Deleted ${componentType}`;
+    const componentNames = {
+      templateMarkdown: 'Template',
+      modelCto: 'Model',
+      data: 'Data'
+    };
     
-    const changes = [];
-    if (stats.added > 0) changes.push(`+${stats.added} lines`);
-    if (stats.deleted > 0) changes.push(`-${stats.deleted} lines`);
+    const name = componentNames[componentType] || 'Content';
     
-    return changes.length > 0 
-      ? `Modified ${componentType}: ${changes.join(', ')}`
-      : `Updated ${componentType}`;
+    if (lineDiff > 0) {
+      return `${name}: Added ${lineDiff} lines`;
+    } else if (lineDiff < 0) {
+      return `${name}: Removed ${Math.abs(lineDiff)} lines`;
+    } else {
+      return `${name}: Modified content`;
+    }
   },
 
   formatTimestamp(timestamp: string): string {

@@ -55,13 +55,19 @@ export interface VersionState {
 const STORAGE_KEYS = {
   VERSIONS: 'accord-playground-versions',
   AUTHOR: 'accord-playground-author',
+  COUNTER: 'accord-playground-version-counter', 
 } as const;
 
 export class VersionManager {
   private static instance: VersionManager;
   private versions: Map<string, VersionRecord> = new Map();
-
+  private versionCounter: number = 0;
+  private lastTimestamp: number = 0;
+  private sessionId: string;
+ 
   private constructor() {
+    this.sessionId = Math.random().toString(36).substr(2, 6);
+    this.loadCounterFromStorage();
     this.loadVersionsFromStorage();
   }
 
@@ -73,7 +79,20 @@ export class VersionManager {
   }
 
   private generateId(): string {
-    return `v_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    this.versionCounter++;
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substr(2, 3);
+    
+    const id = `v_${this.versionCounter}_${this.sessionId}_${timestamp}_${randomSuffix}`;
+    this.saveCounterToStorage();
+    return id;
+  }
+  private saveCounterToStorage(): void {
+    try {
+      localStorage.setItem(STORAGE_KEYS.COUNTER, this.versionCounter.toString());
+    } catch (error) {
+      console.warn('Failed to save counter to localStorage:', error);
+    }
   }
 
   createVersion(
@@ -102,6 +121,15 @@ export class VersionManager {
   getVersion(id: string): VersionRecord | undefined {
     return this.versions.get(id);
   }
+
+  getVersionHash(versionId: string): string {
+    const parts = versionId.split('_');
+    if (parts.length >= 4) {
+      return `${parts[1]}.${parts[2]}`;
+    }
+    return versionId.substring(0, 8);
+  }
+
 
   getAllVersions(): VersionRecord[] {
     return Array.from(this.versions.values()).sort(
@@ -234,7 +262,17 @@ export class VersionManager {
       this.versions.clear();
     }
   }
-
+  private loadCounterFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.COUNTER);
+      if (stored) {
+        this.versionCounter = parseInt(stored, 10) || 0;
+      }
+    } catch (error) {
+      console.warn('Failed to load counter from localStorage:', error);
+      this.versionCounter = 0;
+    }
+  }
   private cleanupOldVersions(keepCount: number = 50): void {
     const sortedVersions = this.getAllVersions();
     if (sortedVersions.length <= keepCount) return;
